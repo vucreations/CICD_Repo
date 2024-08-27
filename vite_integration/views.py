@@ -2,4 +2,4 @@ from django.http import HttpResponse
 # Create your views here.
 
 def homepage(request):
-    return HttpResponse("Hello World, CICD")
+    return HttpResponse("Hello World, CICD Pipeline")
