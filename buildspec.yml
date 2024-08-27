@@ -1,0 +1,97 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      python: 3.11
+      nodejs: 20.11.0
+    commands:
+      - echo Installing dependencies
+      - pip install virtualenv
+      - echo Creating virtual environment
+      - virtualenv /tmp/venv
+      - . /tmp/venv/bin/activate
+      - apt-get update
+      - echo "Installing Google Chrome..."
+      # - wget https://dl.google.com/linux/direct/google-chrome-stable_current_x86_64.rpm
+      # - apt-get localinstall -y google-chrome-stable_current_x86_64.rpm
+      # - curl https://intoli.com/install-google-chrome.sh | bash
+      - wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+      - apt install ./google-chrome-stable_current_amd64.deb -y
+      # - echo "Installing ChromeDriver..."
+      # - wget https://chromedriver.storage.googleapis.com/114.0.5735.90/chromedriver_linux64.zip
+      # - unzip chromedriver_linux64.zip -d /usr/local/bin/
+      # - chmod +x /usr/local/bin/chromedriver
+      # - rm chromedriver_linux64.zip
+      
+      # - echo Installing PostgreSQL
+      # - apt-get install postgresql postgresql-contrib -y
+      # - service postgresql initdb
+      # - service postgresql start
+      # - echo Configuring PostgreSQL
+      # - sudo -u postgres psql -c "CREATE USER postgres WITH PASSWORD postgres;"
+      # - sudo -u postgres psql -c "CREATE DATABASE test_db OWNER postgres;"
+
+      - pip install -r requirements.txt
+      
+      # - apt-get install -y jq
+      # - pip install pytest pytest-cov
+      # - pip install coverage
+      - cd frontend
+      - npm install
+      - cd ..
+      
+      
+  pre_build:
+    on-failure: ABORT
+    commands:
+      - echo Starting pre-build phase
+      - python manage.py migrate --noinput
+      - python manage.py loaddata initial_data.json
+
+      - echo "Starting local server..."
+      - python manage.py runserver 0.0.0.0:8000 &  # Start the local server in the background
+      - echo "Waiting for local server to be ready..."
+      - until $(curl --output /dev/null --silent --head --fail http://localhost:8000); do printf '.'; sleep 1; done
+      
+  build:
+    on-failure: ABORT
+    commands:
+      - echo Running Selenium tests
+      - python manage.py test functional_tests/
+      - pytest --junitxml=test_reports/selenium_test_reports/report.xml
+
+      - echo Running Django unit tests
+      - python manage.py test
+      
+      - echo Running React Vitest tests
+      - cd frontend
+      - npm run build
+      - npm run test
+      - cd ..
+      - python manage.py collectstatic --noinput
+
+      - echo Finished Building
+
+  post_build:
+    on-failure: ABORT
+    commands:
+      - echo Creating build directory
+    #   - mkdir -p /tmp/build/frontend
+    #   - cp -r frontend/build/* /tmp/build/frontend/
+
+reports:
+  TestReports: # CodeBuild will create a report group called "TestReports".
+    files: #Store all of the files
+      - '**/*'
+    base-directory: 'test_reports/selenium_test_reports' # Location of the reports 
+
+artifacts:
+  files:
+    - '**/*'
+    # - 'frontend/build/**/*'
+
+cache:
+  paths:
+    - 'node_modules/**/*'
+    - 'venv/**/*'

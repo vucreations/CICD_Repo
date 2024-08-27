@@ -1,0 +1,25 @@
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": [
+                "codecommit:*"
+            ],
+            "Resource": "arn:aws:codecommit:us-east-1:761203421896:CI-CD-TestRepo"
+        },
+        {
+            "Effect": "Allow",
+            "Action": ["codecommit:ListRepositories"],
+            "Resource": "*"
+        },
+        {
+            "Sid": "IAMReadOnlyListAccess",
+            "Effect": "Allow",
+            "Action": [
+                "iam:ListUsers"
+            ],
+            "Resource": "arn:aws:codecommit:us-east-1:761203421896:CI-CD-TestRepo"
+        }
+    ]
+}

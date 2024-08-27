@@ -1,0 +1,68 @@
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "DenyPushToMainBranch",
+            "Effect": "Deny",
+            "Action": [
+                "codecommit:GitPush",
+                "codecommit:DeleteBranch",
+                "codecommit:DeleteFile",
+                "codecommit:PutFile",
+                "codecommit:MergeBranchesByFastForward",
+                "codecommit:MergeBranchesBySquash",
+                "codecommit:MergeBranchesByThreeWay",
+                "codecommit:MergePullRequestByFastForward",
+                "codecommit:MergePullRequestBySquash",
+                "codecommit:MergePullRequestByThreeWay"
+            ],
+            "Resource": "arn:aws:codecommit:us-east-1:761203421896:CI-CD-TestRepo",
+            "Condition": {
+                "StringEqualsIfExists": {
+                    "codecommit:References": ["refs/heads/main"]
+                },
+                "Null": {
+                    "codecommit:References": "false"
+                }
+            }
+        },
+        {
+            "Sid": "DeveloperCreatePullRequest",
+            "Effect": "Allow",
+            "Action": [
+                "codecommit:GitPull",
+                "codecommit:GitPush",
+                "codecommit:CreatePullRequest",
+                "codecommit:GetRepository",
+                "codecommit:BatchGetRepositories",
+                "codecommit:ListPullRequests",
+                "codecommit:BatchGet*",
+                "codecommit:BatchDescribe*",
+                "codecommit:Describe*",
+                "codecommit:EvaluatePullRequestApprovalRules",
+                "codecommit:Get*",
+                "codecommit:List*",
+                "codecommit:GitPull",
+                "codecommit:PostCommentForPullRequest",
+                "codecommit:PostCommentReply"
+
+            ],
+            "Resource": [
+                "arn:aws:codecommit:us-east-1:761203421896:CI-CD-TestRepo"
+            ]
+        },
+        {
+            "Effect": "Allow",
+            "Action": ["codecommit:ListRepositories"],
+            "Resource": "*"
+        },
+        {
+            "Sid": "IAMReadOnlyListAccess",
+            "Effect": "Allow",
+            "Action": [
+                "iam:ListUsers"
+            ],
+            "Resource": "arn:aws:codecommit:us-east-1:761203421896:CI-CD-TestRepo"
+        }
+    ]
+}
