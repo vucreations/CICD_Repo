@@ -1,17 +1,29 @@
 #!/bin/bash
 
-PROJDIR="/home/ubuntu/CI-CD-TestRepo"
-PIDFILE="/home/ubuntu/CI-CD-TestRepo/uwsgi.pid"
 
+PROJDIR="/home/ubuntu/CICD_Repo"
+PIDFILE="/home/ubuntu/uwsgi.pid"
+VENVDIR="/home/ubuntu/test_env"
 
 cd $PROJDIR
 
-
 if [ -f $PIDFILE ]; then
-    kill -9 cat -- $PIDFILE
-    rm -f -- $PIDFILE
+        kill -9 `cat -- $PIDFILE`
+        rm -f -- $PIDFILE
 fi
 
-/home/ubuntu/env/bin/uwsgi  --socket /home/ubuntu/CI-CD-TestRepo.sock --module DjTodos.wsgi:application --pidfile=uwsgi.pid --master --processes 2 --threads 2 --chmod-socket=666 -b 65535 --daemonize=/home/ubuntu/CI-CD-TestRepo.log
+# Activate the virtual environment
+#source $VENVDIR/bin/activate
 
-echo "Restarted"
+# Activate the virtual environment using Bash shell
+if [ -e "$VENVDIR/bin/activate" ]; then
+    . "$VENVDIR/bin/activate"
+else
+    echo "Virtual environment not found at $VENVDIR"
+    exit 1
+fi
+
+
+UWSGI_EXECUTABLE="/home/ubuntu/test_env/bin/uwsgi"
+$UWSGI_EXECUTABLE --chdir /home/ubuntu/CICD_Repo --socket /home/ubuntu/DjTodos.sock --module DjTodos.wsgi:application --pidfile=/home/ubuntu/uwsgi.pid --master --processes 2 --threads 1 --chmod-socket=666 -b 32768 --daemonize=/home/ubuntu/CICD.log
+echo "Proj Restarted."
