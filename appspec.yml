@@ -3,11 +3,11 @@ version: 0.0
 os: linux
 files: 
   - source: /
-    destination: /home/ubuntu/CI-CD-TestRepo/
+    destination: /home/ubuntu/CICD_Repo/
     # overwrite: true
 file_exists_behavior: OVERWRITE
 permissions:
-  - object: /home/ubuntu/CI-CD-TestRepo
+  - object: /home/ubuntu/CICD_Repo
     owner: ubuntu
     group: ubuntu
 hooks:
